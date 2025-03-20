@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+require('dotenv').config();  // Add this line at the top
 
 // Create an instance of Express app
 const app = express();
@@ -105,10 +106,10 @@ app.use((req, res, next) => {
 
 // MySQL database connection
 const db = mysql.createConnection({
-  host: 'b3tlpznphrifzbxlyv7f-mysql.services.clever-cloud.com',
-  user: 'unozpclfmu6tzhkc',
-  password: 'tVsmyuKsrtTvPiqfqsXE',
-  database: 'b3tlpznphrifzbxlyv7f',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 // Check DB connection
@@ -232,6 +233,6 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-app.listen(5000, '0.0.0.0', () => {
-  console.log('Server running on http://0.0.0.0:5000');
+app.listen(process.env.PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${process.env.PORT}`);
 });
