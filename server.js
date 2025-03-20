@@ -15,7 +15,7 @@ const allowedOrigins = [
   'http://localhost',
   'https://tryon-hairstyle.vercel.app', // Add your Vercel domain
   'https://tryon-hairstyle-git-main-christian-ivan-baraces-projects.vercel.app',
-  'https://tryon-hairstyle-kcsnvhf3c-christian-ivan-baraces-projects.vercel.app,'
+  'https://tryon-hairstyle-kcsnvhf3c-christian-ivan-baraces-projects.vercel.app'
 ];
 
 app.use(cors({
