@@ -36,8 +36,6 @@ app.use(cors({
 // Update CORS headers for static files
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle.vercel.app');
-  res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle-git-main-christian-ivan-baraces-projects.vercel.app');
-  res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle-kcsnvhf3c-christian-ivan-baraces-projects.vercel.app');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Cross-Origin-Resource-Policy', 'cross-origin');
   res.header('Cross-Origin-Embedder-Policy', 'require-corp');
