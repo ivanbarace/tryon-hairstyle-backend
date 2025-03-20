@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config();
 
 // Create an instance of Express app
 const app = express();
@@ -16,9 +15,7 @@ const allowedOrigins = [
   'http://192.168.1.53',
   'http://localhost',
   'http://192.168.1.22:5173',  // Add your IP address
-  'http://192.168.1.22',        // Add your IP address without port
-  'https://tryon-hairstyle.vercel.app',     // Your deployed frontend URL
-  'https://tryon-hairstyle.vercel.app/'     // Also include version with trailing slash
+  'http://192.168.1.22'        // Add your IP address without port
 ];
 
 app.use(cors({
@@ -31,11 +28,9 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  credentials: true,
-  maxAge: 86400 // 24 hours
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 // Update the CORS configuration to explicitly allow image sharing
@@ -236,13 +231,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Update the listen configuration at the bottom of the file
-const PORT = process.env.PORT || 5000;
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
-  });
-}
-
-// Add this for Vercel
-module.exports = app;
+// Start the server
+app.listen(5000, '0.0.0.0', () => {
+  console.log('Server running on http://0.0.0.0:5000');
+});
