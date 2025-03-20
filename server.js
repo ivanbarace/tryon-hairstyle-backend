@@ -35,7 +35,7 @@ app.use(cors({
 
 // Update CORS headers for static files
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle.vercel.app');
+  res.header('Access-Control-Allow-Origin',  'https://tryon-hairstyle.vercel.app');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Cross-Origin-Resource-Policy', 'cross-origin');
   res.header('Cross-Origin-Embedder-Policy', 'require-corp');
@@ -48,13 +48,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static files (e.g., profile pictures, hairstyles, etc.)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-  setHeaders: (res) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  }
-}));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Add this utility function after your imports
 const normalizeFilePath = (path) => {
@@ -196,26 +190,6 @@ app.get('/test-image/:filename', (req, res) => {
     res.json({
       exists: false,
       path: filepath
-    });
-  }
-});
-
-// Add debug route to check file paths
-app.get('/debug-file/:type/:filename', (req, res) => {
-  const { type, filename } = req.params;
-  const filepath = path.join(__dirname, type, filename);
-  
-  if (fs.existsSync(filepath)) {
-    res.json({
-      exists: true,
-      path: filepath,
-      stats: fs.statSync(filepath)
-    });
-  } else {
-    res.json({
-      exists: false,
-      path: filepath,
-      searched: path.dirname(filepath)
     });
   }
 });
