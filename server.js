@@ -35,7 +35,7 @@ app.use(cors({
 
 // Update CORS headers for static files
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle.vercel.app');
+  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Cross-Origin-Resource-Policy', 'cross-origin');
   res.header('Cross-Origin-Embedder-Policy', 'require-corp');
@@ -282,47 +282,4 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-});
-
-// Update CORS headers for all responses
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-});
-
-// Serve static files with improved configuration
-app.use('/public/hairstyles', express.static(path.join(__dirname, 'public/hairstyles'), {
-  setHeaders: (res, path) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-    if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
-      res.setHeader('Content-Type', 'image/jpeg');
-    } else if (path.endsWith('.png')) {
-      res.setHeader('Content-Type', 'image/png');
-    }
-  }
-}));
-
-// Add a test endpoint to verify image paths
-app.get('/test-hairstyle-path/:filename', (req, res) => {
-  const filename = req.params.filename;
-  const filepath = path.join(__dirname, 'public/hairstyles', filename);
-  
-  if (fs.existsSync(filepath)) {
-    res.json({
-      exists: true,
-      path: filepath,
-      publicUrl: `/public/hairstyles/${filename}`,
-      stats: fs.statSync(filepath)
-    });
-  } else {
-    res.json({
-      exists: false,
-      path: filepath,
-      attempted: `/public/hairstyles/${filename}`
-    });
-  }
 });
