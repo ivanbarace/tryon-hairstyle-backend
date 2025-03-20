@@ -12,30 +12,29 @@ const app = express();
 // Enable CORS for both localhost and the IP address range
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://192.168.1.53:5173',
-  'http://192.168.1.53',
   'http://localhost',
-  'http://192.168.1.22:5173',  // Add your IP address
-  'http://192.168.1.22'        // Add your IP address without port
+  'https://tryon-hairstyle.vercel.app'  // Add your Vercel domain
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow requests with no origin (e.g., mobile apps)
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log('Blocked origin:', origin);  // Add logging for debugging
+      console.log('Blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['set-cookie']
 }));
 
-// Update the CORS configuration to explicitly allow image sharing
+// Update CORS headers for static files
 app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle.vercel.app');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Cross-Origin-Resource-Policy', 'cross-origin');
   res.header('Cross-Origin-Embedder-Policy', 'require-corp');
   res.header('Cross-Origin-Opener-Policy', 'same-origin');
@@ -47,7 +46,12 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static files (e.g., profile pictures, hairstyles, etc.)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, path) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
+}));
 app.use('/hairstyles', express.static(path.join(__dirname, 'public/hairstyles'), {
   setHeaders: (res, path) => {
     if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
@@ -77,7 +81,12 @@ app.use('/public', express.static(path.join(__dirname, 'public'), {
 }));
 
 // Update the static file serving configuration - remove the '/uploads' prefix
-app.use('/', express.static(path.join(__dirname)));
+app.use('/', express.static(path.join(__dirname), {
+  setHeaders: (res, path) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
+}));
 
 // Add debugging middleware for static files
 app.use((req, res, next) => {
