@@ -56,8 +56,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 }));
 app.use('/hairstyles', express.static(path.join(__dirname, 'public/hairstyles'), {
   setHeaders: (res, path) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
     if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
       res.setHeader('Content-Type', 'image/jpeg');
     } else if (path.endsWith('.png')) {
@@ -113,17 +111,6 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   if (req.url.startsWith('/uploads')) {
     console.log('Accessing uploads:', req.url);
-  }
-  next();
-});
-
-// Add this debugging middleware
-app.use((req, res, next) => {
-  if (req.url.includes('hairstyles')) {
-    console.log('Accessing hairstyle image:', {
-      url: req.url,
-      absolutePath: path.join(__dirname, 'public', req.url)
-    });
   }
   next();
 });
