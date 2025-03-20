@@ -36,6 +36,8 @@ app.use(cors({
 // Update CORS headers for static files
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle.vercel.app');
+  res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle-git-main-christian-ivan-baraces-projects.vercel.app');
+  res.header('Access-Control-Allow-Origin', 'https://tryon-hairstyle-kcsnvhf3c-christian-ivan-baraces-projects.vercel.app');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Cross-Origin-Resource-Policy', 'cross-origin');
   res.header('Cross-Origin-Embedder-Policy', 'require-corp');
@@ -116,19 +118,38 @@ app.use((req, res, next) => {
 });
 
 // MySQL database connection
-const db = mysql.createConnection({
+const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-// Check DB connection
-db.connect((err) => {
+// Remove the db.connect() check since pool handles connections automatically
+// Instead, test the pool connection like this:
+db.getConnection((err, connection) => {
   if (err) {
     console.error('Error connecting to the database:', err);
-  } else {
-    console.log('Connected to the MySQL database.');
+    return;
+  }
+  console.log('Connected to the MySQL database.');
+  connection.release();
+});
+
+// Add error handling for the pool
+db.on('error', (err) => {
+  console.error('Database pool error:', err);
+  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+    console.error('Database connection was closed.');
+  }
+  if (err.code === 'ER_CON_COUNT_ERROR') {
+    console.error('Database has too many connections.');
+  }
+  if (err.code === 'ECONNREFUSED') {
+    console.error('Database connection was refused.');
   }
 });
 
