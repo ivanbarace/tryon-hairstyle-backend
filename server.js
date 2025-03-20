@@ -212,6 +212,22 @@ app.use('/', dashboardStatsRoute);
 app.use('/', contactRoute); // Add this with your other route uses
 app.use('/', messagesRoute);
 
+// Add this before error handling middleware
+app.get('/', (req, res) => {
+  res.json({
+    message: 'TryOn Hairstyle API is running',
+    status: 'active',
+    version: '1.0.0',
+    endpoints: [
+      '/login',
+      '/register',
+      '/users',
+      '/hairstyles',
+      // Add other main endpoints here
+    ]
+  });
+});
+
 // Add this debug middleware
 app.use((req, res, next) => {
     console.log('Request:', {
