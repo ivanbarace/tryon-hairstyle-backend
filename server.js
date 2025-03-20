@@ -17,8 +17,8 @@ const allowedOrigins = [
   'http://localhost',
   'http://192.168.1.22:5173',  // Add your IP address
   'http://192.168.1.22',        // Add your IP address without port
-  'https://tryon-hairstyle.vercel.app/', // Add your Vercel frontend URL here
-  'https://my-hairstyle.vercel.app'       // Add this if this is your frontend URL
+  'https://tryon-hairstyle.vercel.app',     // Your deployed frontend URL
+  'https://tryon-hairstyle.vercel.app/'     // Also include version with trailing slash
 ];
 
 app.use(cors({
