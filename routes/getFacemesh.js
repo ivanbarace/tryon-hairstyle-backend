@@ -48,7 +48,7 @@ module.exports = (db) => {
       }
 
       // Construct the full URL including the backend URL
-      const baseUrl = process.env.BACKEND_URL || 'http://localhost:5173';
+      const baseUrl = process.env.BACKEND_URL || 'http://localhost:3000';
       const imageUrl = `${baseUrl}/facemesh/${facemeshData.facemesh_data}`;
 
       console.log('Sending response with full URL:', {
