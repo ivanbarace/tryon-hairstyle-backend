@@ -47,10 +47,11 @@ module.exports = (db) => {
         });
       }
 
-      // Construct the full URL for the image
-      const imageUrl = `/facemesh/${facemeshData.facemesh_data}`;
-      
-      console.log('Sending response:', {
+      // Construct the full URL including the backend URL
+      const baseUrl = process.env.BACKEND_URL || 'http://localhost:5173';
+      const imageUrl = `${baseUrl}/facemesh/${facemeshData.facemesh_data}`;
+
+      console.log('Sending response with full URL:', {
         imageUrl,
         faceShape: facemeshData.faceshape
       }); // Debug log
