@@ -63,8 +63,11 @@ module.exports = (db) => {
         });
       }
 
-      // Construct the full URL for the image
-      const imageUrl = `/facemesh/${facemeshData.facemesh_data}`;
+      // Update the image URL construction to include the full server URL
+      const serverUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://tryon-hairstyle-backend.up.railway.app'
+        : 'http://localhost:3000';
+      const imageUrl = `${serverUrl}/facemesh/${facemeshData.facemesh_data}`;
       
       console.log('Sending response:', {
         imageUrl,
