@@ -51,10 +51,12 @@ module.exports = (db) => {
         });
       }
 
-      // Just return the raw filename and face shape
+      // Return the complete data
       res.json({
+        success: true,
         facemeshData: facemeshData.facemesh_data,
-        faceShape: facemeshData.faceshape
+        faceShape: facemeshData.faceshape,
+        fullPath: `public/facemesh/${facemeshData.facemesh_data}` // Add this line
       });
     });
   });

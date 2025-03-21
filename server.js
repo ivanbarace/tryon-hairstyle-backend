@@ -71,12 +71,26 @@ app.use('/hairstyles', express.static(path.join(__dirname, 'public/hairstyles'),
   }
 }));
 
-// Update facemesh static serving to use the correct path
+// Update facemesh static serving
 app.use('/facemesh', express.static(path.join(__dirname, 'public/facemesh'), {
   setHeaders: (res, path) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Content-Type', 'image/png');
   }
 }));
+
+// Add debugging for facemesh requests
+app.use((req, res, next) => {
+  if (req.url.includes('facemesh')) {
+    console.log('Facemesh request:', {
+      url: req.url,
+      method: req.method,
+      path: path.join(__dirname, 'public', req.url)
+    });
+  }
+  next();
+});
 
 // Add debugging middleware for static files
 app.use((req, res, next) => {
