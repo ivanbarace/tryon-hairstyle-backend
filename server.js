@@ -71,22 +71,12 @@ app.use('/hairstyles', express.static(path.join(__dirname, 'public/hairstyles'),
   }
 }));
 
-// Ensure facemesh directory exists
-const facemeshDir = path.join(__dirname, 'public/facemesh');
-if (!fs.existsSync(facemeshDir)) {
-  fs.mkdirSync(facemeshDir, { recursive: true });
-}
-
-// Update facemesh static serving with better error handling
+// Update facemesh static serving to use the correct path
 app.use('/facemesh', express.static(path.join(__dirname, 'public/facemesh'), {
   setHeaders: (res, path) => {
     res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   }
-}), (req, res, next) => {
-  // Handle 404 for facemesh images
-  res.status(404).json({ error: 'Facemesh image not found' });
-});
+}));
 
 // Add debugging middleware for static files
 app.use((req, res, next) => {

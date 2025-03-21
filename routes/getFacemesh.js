@@ -2,15 +2,6 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 
-// Add allowed origins array at the top
-const allowedOrigins = [
-  'https://tryon-hairstyle.vercel.app',
-  'https://tryon-hairstyle-christian-ivan-baraces-projects.vercel.app',
-  'http://localhost:5173',
-  'http://localhost',
-  'https://tryon-hairstyle-git-main-christian-ivan-baraces-projects.vercel.app'
-];
-
 module.exports = (db) => {
   // Debug endpoint
   router.get('/getFacemesh/test', (req, res) => {
@@ -18,11 +9,8 @@ module.exports = (db) => {
   });
 
   router.get('/getFacemesh/:userId', (req, res) => {
-    // Update CORS headers
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-      res.header('Access-Control-Allow-Origin', origin);
-    }
+    // Set CORS headers specifically for this route
+    res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
     res.header('Access-Control-Allow-Credentials', 'true');
 
     const userId = req.params.userId;
@@ -63,11 +51,8 @@ module.exports = (db) => {
         });
       }
 
-      // Update the image URL construction to include the full server URL
-      const serverUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://tryon-hairstyle-backend.up.railway.app'
-        : 'http://localhost:3000';
-      const imageUrl = `${serverUrl}/facemesh/${facemeshData.facemesh_data}`;
+      // Construct the full URL for the image
+      const imageUrl = `/facemesh/${facemeshData.facemesh_data}`;
       
       console.log('Sending response:', {
         imageUrl,
