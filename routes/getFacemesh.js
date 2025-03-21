@@ -9,6 +9,10 @@ module.exports = (db) => {
   });
 
   router.get('/getFacemesh/:userId', (req, res) => {
+    // Set CORS headers specifically for this route
+    res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+    res.header('Access-Control-Allow-Credentials', 'true');
+
     const userId = req.params.userId;
     console.log('Fetching facemesh for user:', userId); // Debug log
 
@@ -47,11 +51,10 @@ module.exports = (db) => {
         });
       }
 
-      // Construct the full URL including the backend URL
-      const baseUrl = process.env.BACKEND_URL || 'http://localhost:3000';
-      const imageUrl = `${baseUrl}/facemesh/${facemeshData.facemesh_data}`;
-
-      console.log('Sending response with full URL:', {
+      // Construct the full URL for the image
+      const imageUrl = `/facemesh/${facemeshData.facemesh_data}`;
+      
+      console.log('Sending response:', {
         imageUrl,
         faceShape: facemeshData.faceshape
       }); // Debug log
