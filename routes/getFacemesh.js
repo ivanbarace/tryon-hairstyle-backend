@@ -9,19 +9,6 @@ module.exports = (db) => {
   });
 
   router.get('/getFacemesh/:userId', (req, res) => {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'https://tryon-hairstyle-git-main-christian-ivan-baraces-projects.vercel.app',
-      'https://tryon-hairstyle.vercel.app',
-      'https://tryon-hairstyle-christian-ivan-baraces-projects.vercel.app'
-    ];
-    
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-      res.header('Access-Control-Allow-Origin', origin);
-    }
-    res.header('Access-Control-Allow-Credentials', 'true');
-
     const userId = req.params.userId;
     console.log('Fetching facemesh for user:', userId); // Debug log
 
