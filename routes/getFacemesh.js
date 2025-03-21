@@ -51,16 +51,9 @@ module.exports = (db) => {
         });
       }
 
-      // Construct the full URL for the image
-      const imageUrl = `/facemesh/${facemeshData.facemesh_data}`;
-      
-      console.log('Sending response:', {
-        imageUrl,
-        faceShape: facemeshData.faceshape
-      }); // Debug log
-
+      // Just return the raw filename and face shape
       res.json({
-        facemeshImage: imageUrl,
+        facemeshData: facemeshData.facemesh_data,
         faceShape: facemeshData.faceshape
       });
     });
