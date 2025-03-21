@@ -9,8 +9,19 @@ module.exports = (db) => {
   });
 
   router.get('/getFacemesh/:userId', (req, res) => {
-    // Set CORS headers specifically for this route
-    res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+    // Set CORS headers for all allowed origins
+    const allowedOrigins = [
+      'https://tryon-hairstyle.vercel.app',
+      'https://tryon-hairstyle-christian-ivan-baraces-projects.vercel.app',
+      'http://localhost:5173',
+      'http://localhost',
+      'https://tryon-hairstyle-git-main-christian-ivan-baraces-projects.vercel.app'
+    ];
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Access-Control-Allow-Credentials', 'true');
 
     const userId = req.params.userId;
