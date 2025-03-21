@@ -11,11 +11,11 @@ const app = express();
 
 // Enable CORS for both localhost and the IP address range
 const allowedOrigins = [
-  'https://tryon-hairstyle.vercel.app/', // Add your Vercel domain
-  'https://tryon-hairstyle-christian-ivan-baraces-projects.vercel.app/',
+  'https://tryon-hairstyle.vercel.app', // Add your Vercel domain
+  'https://tryon-hairstyle-christian-ivan-baraces-projects.vercel.app',
   'http://localhost:5173',
   'http://localhost',
-  'https://tryon-hairstyle-git-main-christian-ivan-baraces-projects.vercel.app/'
+  'https://tryon-hairstyle-git-main-christian-ivan-baraces-projects.vercel.app'
 ];
 
 app.use(cors({
