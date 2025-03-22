@@ -239,7 +239,6 @@ const verifyCredentialsRoute = require('./routes/verifyCredentials')(db); // Add
 const updatePasswordRoute = require('./routes/updatePassword')(db); // Add this line with your other route imports
 const fetchArchivedHairstylesRoute = require('./routes/fetchArchivedHairstyles')(db);
 const adminUpdatePasswordRoute = require('./routes/adminUpdatePassword')(db);
-const saveTryOnRoute = require('./routes/saveTryOn')(db);
 const dashboardStatsRoute = require('./routes/dashboardStats')(db);
 const contactRoute = require('./routes/contact')(db); // Add this with your other route imports
 const messagesRoute = require('./routes/messages')(db);
@@ -272,7 +271,6 @@ app.use('/', verifyCredentialsRoute); // Add this line
 app.use('/', updatePasswordRoute); // Add this line with your other route uses
 app.use('/', fetchArchivedHairstylesRoute);
 app.use('/', adminUpdatePasswordRoute);
-app.use('/', saveTryOnRoute);
 app.use('/', dashboardStatsRoute);
 app.use('/', contactRoute); // Add this with your other route uses
 app.use('/', messagesRoute);
