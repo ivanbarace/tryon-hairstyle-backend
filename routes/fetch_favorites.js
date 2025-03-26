@@ -75,5 +75,50 @@ module.exports = (db) => {
         });
     });
 
+    router.get('/favorites/details/:userId', (req, res) => {
+        const userId = req.params.userId;
+        const query = `
+            SELECT 
+                h.hairstyle_id,
+                h.hairstyle_name,
+                h.hairstyle_picture,
+                h.hairtype,
+                h.hair_length,
+                h.description,
+                GROUP_CONCAT(DISTINCT hf.faceshape SEPARATOR ', ') as faceshape,
+                COALESCE(AVG(r.rating), 0) as average_rating,
+                COUNT(DISTINCT r.rating_id) as total_ratings
+            FROM favorites f
+            JOIN hairstyle h ON f.hairstyle_id = h.hairstyle_id
+            LEFT JOIN hairstyle_faceshape hf ON h.hairstyle_id = hf.hairstyle_id
+            LEFT JOIN ratings r ON h.hairstyle_id = r.hairstyle_id
+            WHERE f.user_id = ?
+            GROUP BY 
+                h.hairstyle_id,
+                h.hairstyle_name,
+                h.hairstyle_picture,
+                h.hairtype,
+                h.hair_length,
+                h.description
+        `;
+
+        db.query(query, [userId], (err, results) => {
+            if (err) {
+                console.error('Error fetching favorite details:', err);
+                return res.status(500).json({ message: 'Error fetching favorites' });
+            }
+
+            const processedResults = results.map(row => ({
+                ...row,
+                faceshape: row.faceshape || '',  // Keep the comma-separated string
+                isFavorite: true,
+                averageRating: parseFloat(row.average_rating || 0).toFixed(1),
+                totalRatings: row.total_ratings || 0
+            }));
+
+            res.json(processedResults);
+        });
+    });
+
     return router;
 };

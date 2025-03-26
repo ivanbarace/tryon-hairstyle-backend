@@ -42,7 +42,7 @@ module.exports = (db) => {
 
     // Route to add a new hairstyle
     router.post('/hairstyles', (req, res) => {
-        upload(req, res, function(err) {
+        upload(req, res, async function(err) {
             if (err) {
                 console.error('Error in file upload:', err);
                 return res.status(400).json({ message: err.message });
@@ -50,6 +50,7 @@ module.exports = (db) => {
 
             try {
                 const { hairstyle_name, faceshape, hairtype, hair_length, description } = req.body;
+                const additionalFaceShapes = JSON.parse(req.body.additionalFaceShapes || '[]');
                 
                 if (!req.file) {
                     return res.status(400).json({ message: 'No image file uploaded' });
@@ -57,27 +58,73 @@ module.exports = (db) => {
 
                 const hairstyle_picture = `/hairstyles/${req.file.filename}`;
 
-                const query = `
-                    INSERT INTO hairstyle 
-                    (hairstyle_name, hairstyle_picture, faceshape, hairtype, hair_length, description, status)
-                    VALUES (?, ?, ?, ?, ?, ?, "active")
-                `;
+                // Start a transaction
+                const connection = await new Promise((resolve, reject) => {
+                    db.getConnection((err, conn) => {
+                        if (err) reject(err);
+                        resolve(conn);
+                    });
+                });
 
-                db.query(
-                    query,
-                    [hairstyle_name, hairstyle_picture, faceshape, hairtype, hair_length, description],
-                    (err, result) => {
-                        if (err) {
-                            console.error('Error adding hairstyle to database:', err);
-                            return res.status(500).json({ message: 'Error adding hairstyle to database' });
-                        }
-                        res.status(201).json({ 
-                            message: 'Hairstyle added successfully', 
-                            id: result.insertId,
-                            filepath: hairstyle_picture
+                try {
+                    await new Promise((resolve, reject) => {
+                        connection.beginTransaction(err => {
+                            if (err) reject(err);
+                            resolve();
+                        });
+                    });
+
+                    // Insert into hairstyle table (removed faceshape)
+                    const [result] = await new Promise((resolve, reject) => {
+                        connection.query(
+                            `INSERT INTO hairstyle 
+                            (hairstyle_name, hairstyle_picture, hairtype, hair_length, description, status)
+                            VALUES (?, ?, ?, ?, ?, "active")`,
+                            [hairstyle_name, hairstyle_picture, hairtype, hair_length, description],
+                            (err, result) => {
+                                if (err) reject(err);
+                                resolve([result]);
+                            }
+                        );
+                    });
+
+                    // Insert main faceshape and additional face shapes into hairstyle_faceshape
+                    const allFaceShapes = [faceshape, ...additionalFaceShapes.filter(shape => shape)];
+                    for (const shape of allFaceShapes) {
+                        await new Promise((resolve, reject) => {
+                            connection.query(
+                                'INSERT INTO hairstyle_faceshape (hairstyle_id, faceshape) VALUES (?, ?)',
+                                [result.insertId, shape],
+                                (err) => {
+                                    if (err) reject(err);
+                                    resolve();
+                                }
+                            );
                         });
                     }
-                );
+
+                    await new Promise((resolve, reject) => {
+                        connection.commit(err => {
+                            if (err) reject(err);
+                            resolve();
+                        });
+                    });
+
+                    res.status(201).json({
+                        message: 'Hairstyle added successfully',
+                        id: result.insertId,
+                        filepath: hairstyle_picture
+                    });
+
+                } catch (error) {
+                    await new Promise(resolve => {
+                        connection.rollback(() => resolve());
+                    });
+                    throw error;
+                } finally {
+                    connection.release();
+                }
+
             } catch (error) {
                 console.error('Error in hairstyle upload:', error);
                 res.status(500).json({ message: 'Server error while uploading hairstyle' });

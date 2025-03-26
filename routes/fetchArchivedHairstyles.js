@@ -4,14 +4,46 @@ module.exports = (db) => {
     const router = express.Router();
 
     router.get('/archived-hairstyles', (req, res) => {
-        const query = 'SELECT * FROM hairstyle WHERE status = "archived" ORDER BY created_at DESC';
+        const query = `
+            SELECT 
+                h.hairstyle_id,
+                h.hairstyle_name,
+                h.hairstyle_picture,
+                h.hairtype,
+                h.hair_length,
+                h.description,
+                h.created_at,
+                h.status,
+                GROUP_CONCAT(DISTINCT hf.faceshape) as faceshape
+            FROM hairstyle h
+            LEFT JOIN hairstyle_faceshape hf ON h.hairstyle_id = hf.hairstyle_id
+            WHERE h.status = "archived"
+            GROUP BY 
+                h.hairstyle_id,
+                h.hairstyle_name,
+                h.hairstyle_picture,
+                h.hairtype,
+                h.hair_length,
+                h.description,
+                h.created_at,
+                h.status
+            ORDER BY h.created_at DESC
+        `;
         
         db.query(query, (err, results) => {
             if (err) {
                 console.error('Error fetching archived hairstyles:', err);
                 return res.status(500).json({ message: 'Error fetching archived hairstyles' });
             }
-            res.json(results);
+
+            // Process results to handle multiple face shapes
+            const processedResults = results.map(row => ({
+                ...row,
+                face_shapes: row.faceshape ? row.faceshape.split(',') : [],
+                faceshape: row.faceshape ? row.faceshape.split(',')[0] : ''
+            }));
+
+            res.json(processedResults);
         });
     });
 

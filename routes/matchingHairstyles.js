@@ -33,32 +33,45 @@ module.exports = (db) => {
   });
 
   router.get('/matching-hairstyles/:faceshape', (req, res) => {
-    const faceshape = req.params.faceshape;
+    const { faceshape } = req.params;
+    const { status = 'active' } = req.query;
 
     const query = `
-        SELECT * FROM hairstyle 
-        WHERE faceshape = ? 
-        AND status = 'active'
-        ORDER BY created_at DESC
+      SELECT DISTINCT
+        h.hairstyle_id,
+        h.hairstyle_name,
+        h.hairstyle_picture as image_url,
+        h.hairtype,
+        h.hair_length,
+        h.description,
+        GROUP_CONCAT(hf.faceshape) as faceshape
+      FROM hairstyle h
+      INNER JOIN hairstyle_faceshape hf ON h.hairstyle_id = hf.hairstyle_id
+      WHERE h.status = ?
+      AND hf.faceshape = ?
+      GROUP BY 
+        h.hairstyle_id,
+        h.hairstyle_name,
+        h.hairstyle_picture,
+        h.hairtype,
+        h.hair_length,
+        h.description
     `;
 
-    db.query(query, [faceshape], (err, results) => {
-        if (err) {
-            console.error('Error fetching matching hairstyles:', err);
-            return res.status(500).json({ message: 'Error fetching matching hairstyles' });
-        }
-        
-        // Add logging to help debug
-        console.log(`Found ${results.length} hairstyles for face shape: ${faceshape}`);
-        
-        res.json(results.map(hairstyle => ({
-            id: hairstyle.hairstyle_id,
-            name: hairstyle.hairstyle_name,
-            image_url: hairstyle.hairstyle_picture,
-            hairtype: hairstyle.hairtype,
-            hair_length: hairstyle.hair_length,
-            description: hairstyle.description
-        })));
+    db.query(query, [status, faceshape], (err, results) => {
+      if (err) {
+        console.error('Error fetching matching hairstyles:', err);
+        return res.status(500).json({ message: 'Error fetching matching hairstyles' });
+      }
+
+      // Process results to include all face shapes
+      const processedResults = results.map(row => ({
+        ...row,
+        face_shapes: row.faceshape ? row.faceshape.split(',') : [],
+        faceshape: row.faceshape ? row.faceshape.split(',')[0] : ''
+      }));
+
+      res.json(processedResults);
     });
   });
 

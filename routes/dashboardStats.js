@@ -14,17 +14,20 @@ module.exports = (db) => {
                 'SELECT COUNT(*) as total FROM hairstyle WHERE status = "active"'
             );
 
-            // Get hairstyles by face shape with all possible values
+            // Update face shape stats query to use hairstyle_faceshape table
             const [faceShapeStats] = await db.promise().query(`
-                SELECT f.face_shape, COALESCE(COUNT(h.hairstyle_id), 0) as count
+                SELECT 
+                    f.face_shape,
+                    COUNT(DISTINCT hf.hairstyle_id) as count
                 FROM (
-                    SELECT 'oval' as face_shape
-                    UNION SELECT 'round'
-                    UNION SELECT 'square'
-                    UNION SELECT 'rectangle'
-                    UNION SELECT 'triangle'
+                    SELECT 'Oval' as face_shape
+                    UNION SELECT 'Round'
+                    UNION SELECT 'Square'
+                    UNION SELECT 'Rectangle'
+                    UNION SELECT 'Triangle'
                 ) f
-                LEFT JOIN hairstyle h ON f.face_shape = h.faceshape AND h.status = 'active'
+                LEFT JOIN hairstyle_faceshape hf ON f.face_shape = hf.faceshape
+                LEFT JOIN hairstyle h ON hf.hairstyle_id = h.hairstyle_id AND h.status = 'active'
                 GROUP BY f.face_shape
                 ORDER BY f.face_shape
             `);
@@ -94,6 +97,14 @@ module.exports = (db) => {
                 ORDER BY month ASC
             `);
 
+            const [activeUsers] = await db.promise().query(`
+                SELECT user_id, fullname, email, profile_picture 
+                FROM users 
+                WHERE role = 'user' 
+                ORDER BY created_at DESC 
+                LIMIT 10
+            `);
+
             res.json({
                 success: true,
                 data: {
@@ -101,7 +112,7 @@ module.exports = (db) => {
                     totalHairstyles: hairstyleCount[0].total,
                     faceShapeStats: faceShapeStats.map(stat => ({
                         faceshape: stat.face_shape,
-                        count: stat.count
+                        count: parseInt(stat.count)
                     })),
                     hairTypeStats: hairTypeStats.map(stat => ({
                         hairtype: stat.hair_type,
@@ -115,7 +126,8 @@ module.exports = (db) => {
                     totalRatings: totalRatings[0].total,
                     recentHairstyles: recentHairstyles,
                     userGrowth: userGrowth,
-                    hairstyleGrowth: hairstyleGrowth
+                    hairstyleGrowth: hairstyleGrowth,
+                    users: activeUsers
                 }
             });
         } catch (error) {
