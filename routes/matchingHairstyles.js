@@ -38,40 +38,57 @@ module.exports = (db) => {
 
     const query = `
       SELECT DISTINCT
-        h.hairstyle_id,
-        h.hairstyle_name,
+        h.hairstyle_id as id,
+        h.hairstyle_name as name,
         h.hairstyle_picture as image_url,
         h.hairtype,
         h.hair_length,
         h.description,
-        GROUP_CONCAT(hf.faceshape) as faceshape
+        h.created_at,
+        GROUP_CONCAT(DISTINCT hf.faceshape) as faceshapes
       FROM hairstyle h
-      INNER JOIN hairstyle_faceshape hf ON h.hairstyle_id = hf.hairstyle_id
+      LEFT JOIN hairstyle_faceshape hf ON h.hairstyle_id = hf.hairstyle_id
       WHERE h.status = ?
-      AND hf.faceshape = ?
+      AND EXISTS (
+        SELECT 1 
+        FROM hairstyle_faceshape hf2 
+        WHERE hf2.hairstyle_id = h.hairstyle_id 
+        AND LOWER(hf2.faceshape) = LOWER(?)
+      )
       GROUP BY 
         h.hairstyle_id,
         h.hairstyle_name,
         h.hairstyle_picture,
         h.hairtype,
         h.hair_length,
-        h.description
+        h.description,
+        h.created_at
+      ORDER BY h.created_at DESC
     `;
 
     db.query(query, [status, faceshape], (err, results) => {
       if (err) {
-        console.error('Error fetching matching hairstyles:', err);
-        return res.status(500).json({ message: 'Error fetching matching hairstyles' });
+        console.error('Database error:', err);
+        return res.status(500).json({ 
+          message: 'Error fetching matching hairstyles',
+          error: err.message 
+        });
       }
 
-      // Process results to include all face shapes
-      const processedResults = results.map(row => ({
-        ...row,
-        face_shapes: row.faceshape ? row.faceshape.split(',') : [],
-        faceshape: row.faceshape ? row.faceshape.split(',')[0] : ''
-      }));
+      try {
+        const processedResults = results.map(row => ({
+          ...row,
+          faceshapes: row.faceshapes ? row.faceshapes.split(',') : []
+        }));
 
-      res.json(processedResults);
+        res.json(processedResults);
+      } catch (error) {
+        console.error('Error processing results:', error);
+        res.status(500).json({ 
+          message: 'Error processing hairstyle data',
+          error: error.message 
+        });
+      }
     });
   });
 
