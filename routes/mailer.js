@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 const sendVerificationEmail = async (userEmail, verificationCode) => {
   try {
     const mailOptions = {
-      from: 'ivanbarivanbar035@gmail.com',
+      from: '"TryOn Hairstyle" <ivanbarivanbar035@gmail.com>',
       to: userEmail,
       subject: 'MyHairstyle - Email Verification',
       html: `
