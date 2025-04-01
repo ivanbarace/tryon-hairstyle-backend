@@ -45,7 +45,7 @@ const sendVerificationEmail = async (userEmail, verificationCode) => {
 
 const sendWelcomeEmail = async (userEmail, fullname) => {
   const mailOptions = {
-    from: 'ivanbarivanbar035@gmail.com',
+    from: '"TryOn Hairstyle" <ivanbarivanbar035@gmail.com>',
     to: userEmail,
     subject: 'Welcome to MyHairstyle!',
     html: `
