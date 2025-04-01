@@ -74,27 +74,16 @@ module.exports = (db) => {
                 'SELECT hairstyle_name, created_at FROM hairstyle WHERE status = "active" ORDER BY created_at DESC LIMIT 5'
             );
 
-            // Get user growth data (last 6 months)
-            const [userGrowth] = await db.promise().query(`
-                SELECT 
-                    DATE_FORMAT(created_at, '%Y-%m') as month,
-                    COUNT(*) as new_users
-                FROM users 
-                WHERE role = 'user'
-                AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-                ORDER BY month ASC
-            `);
-
-            // Get hairstyle additions over time (last 6 months)
+            // Get hairstyle additions per day (last 30 days)
             const [hairstyleGrowth] = await db.promise().query(`
                 SELECT 
-                    DATE_FORMAT(created_at, '%Y-%m') as month,
-                    COUNT(*) as new_hairstyles
+                    DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+                    COUNT(*) as hairstyles_added
                 FROM hairstyle
-                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-                ORDER BY month ASC
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                AND status = 'active'
+                GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+                ORDER BY date ASC
             `);
 
             const [activeUsers] = await db.promise().query(`
@@ -125,8 +114,8 @@ module.exports = (db) => {
                     averageRating: Number(avgRating[0].average) || 0,
                     totalRatings: totalRatings[0].total,
                     recentHairstyles: recentHairstyles,
-                    userGrowth: userGrowth,
                     hairstyleGrowth: hairstyleGrowth,
+                    userGrowth: [], // We'll remove user growth data since we only want hairstyles
                     users: activeUsers
                 }
             });
