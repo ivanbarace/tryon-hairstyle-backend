@@ -29,6 +29,45 @@ module.exports = (db) => {
     fileFilter: fileFilter
   });
 
+  const validatePassword = (password) => {
+    // Check minimum length
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long";
+    }
+
+    // Check if password is only numbers
+    if (/^\d+$/.test(password)) {
+      return "Password cannot contain only numbers";
+    }
+
+    // Check for common number sequences
+    if (/123456789|987654321|12345678|11111111|00000000/.test(password)) {
+      return "Password cannot contain common number sequences";
+    }
+
+    // Check for upper and lowercase
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password)) {
+      return "Password must contain both uppercase and lowercase letters";
+    }
+
+    // Check for common phrases
+    const commonPhrases = [
+      "iloveyou",
+      "password",
+      "qwerty",
+      "abc123",
+      "admin123",
+      "welcome",
+      "monkey",
+    ];
+    const lowerPassword = password.toLowerCase().replace(/\s/g, '');
+    if (commonPhrases.some(phrase => lowerPassword.includes(phrase))) {
+      return "Password contains common phrases that are not allowed";
+    }
+
+    return null; // Password is valid
+  };
+
   router.post('/register', upload.single('profilePicture'), async (req, res) => {
     const { fullname, username, email, password } = req.body;
     const profilePicture = req.file ? `uploads/${req.file.filename}` : null;
@@ -36,6 +75,14 @@ module.exports = (db) => {
     if (!profilePicture || !fullname || !username || !email || !password) {
       return res.status(400).json({
         message: 'Please input all fields'
+      });
+    }
+
+    // Password validation
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({
+        message: passwordError
       });
     }
 
