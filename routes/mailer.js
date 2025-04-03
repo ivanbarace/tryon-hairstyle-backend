@@ -42,7 +42,6 @@ const sendVerificationEmail = async (userEmail, verificationCode) => {
     };
   }
 };
-
 const sendWelcomeEmail = async (userEmail, fullname) => {
   const mailOptions = {
     from: '"TryOn Hairstyle" <ivanbarivanbar035@gmail.com>',
