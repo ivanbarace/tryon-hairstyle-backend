@@ -2,9 +2,72 @@ const express = require('express');
 const router = express.Router();
 const { sendVerificationEmail } = require('./mailer');
 
+// Add validatePassword function
+const validatePassword = (password) => {
+    // Check minimum length
+    if (password.length < 8) {
+        return "Password must be at least 8 characters long";
+    }
+
+    // Check if password is only numbers
+    if (/^\d+$/.test(password)) {
+        return "Password cannot contain only numbers";
+    }
+
+    // Check for common number sequences
+    if (/123456789|987654321|12345678|11111111|00000000/.test(password)) {
+        return "Password cannot contain common number sequences";
+    }
+
+    // Check for uppercase
+    if (!/[A-Z]/.test(password)) {
+        return "Password must contain at least one uppercase letter";
+    }
+
+    // Check for lowercase
+    if (!/[a-z]/.test(password)) {
+        return "Password must contain at least one lowercase letter";
+    }
+
+    // Check for at least 2 numbers
+    if ((password.match(/\d/g) || []).length < 2) {
+        return "Password must contain at least 2 numbers";
+    }
+
+    // Check for special characters
+    if (!/[~!@#$%^&*()_+{:">?"`|}-]/.test(password)) {
+        return "Password must contain at least one special character";
+    }
+
+    // Check for common phrases
+    const commonPhrases = [
+        "iloveyou",
+        "password",
+        "qwerty",
+        "abc123",
+        "admin123",
+        "welcome",
+        "monkey",
+    ];
+    const lowerPassword = password.toLowerCase().replace(/\s/g, '');
+    if (commonPhrases.some(phrase => lowerPassword.includes(phrase))) {
+        return "Password contains common phrases that are not allowed";
+    }
+
+    return null; // Password is valid
+};
+
 module.exports = (db) => {
   router.post('/forgot-password', async (req, res) => {
-    const { email } = req.body;
+    const { email, newPassword } = req.body;
+
+    // Add password validation if newPassword is provided
+    if (newPassword) {
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+            return res.status(400).json({ message: passwordError });
+        }
+    }
 
     try {
       // Check both users and admin tables

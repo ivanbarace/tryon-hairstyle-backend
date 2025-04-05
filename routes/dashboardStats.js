@@ -4,6 +4,12 @@ const router = express.Router();
 module.exports = (db) => {
     router.get('/dashboard-stats', async (req, res) => {
         try {
+            // Get admin info first
+            const [adminResult] = await db.promise().query(
+                'SELECT fullname FROM admin WHERE admin_id = 1'
+            );
+            const adminName = adminResult[0]?.fullname || 'Admin';
+
             // Get total users (excluding admin)
             const [userCount] = await db.promise().query(
                 'SELECT COUNT(*) as total FROM users WHERE role = "user"'
@@ -97,6 +103,7 @@ module.exports = (db) => {
             res.json({
                 success: true,
                 data: {
+                    adminName: adminName,
                     totalUsers: userCount[0].total,
                     totalHairstyles: hairstyleCount[0].total,
                     faceShapeStats: faceShapeStats.map(stat => ({

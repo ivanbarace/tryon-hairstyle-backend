@@ -12,13 +12,8 @@ module.exports = (db) => {
         [email]
       );
 
-      if (admin.length === 0) {
-        return res.status(400).json({ error: 'Email not found' });
-      }
-
-      const isMatch = await bcrypt.compare(currentPassword, admin[0].password);
-      if (!isMatch) {
-        return res.status(400).json({ error: 'Incorrect password' });
+      if (admin.length === 0 || !(await bcrypt.compare(currentPassword, admin[0].password))) {
+        return res.status(401).json({ error: 'Invalid email or password' });
       }
 
       res.json({ success: true, admin_id: admin[0].admin_id });

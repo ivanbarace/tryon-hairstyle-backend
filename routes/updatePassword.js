@@ -2,70 +2,95 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 
-module.exports = (db) => {
-    router.post('/update-password', async (req, res) => {
-        const { email, newPassword, userId } = req.body;
+const isPasswordInUse = async (db, plainPassword, excludeEmail) => {
+  try {
+    // Get all existing hashed passwords from both tables except current user
+    const [userPasswords, adminPasswords] = await Promise.all([
+      new Promise((resolve, reject) => {
+        db.query('SELECT password FROM users WHERE email != ?', [excludeEmail], (err, results) => {
+          if (err) reject(err);
+          else resolve(results);
+        });
+      }),
+      new Promise((resolve, reject) => {
+        db.query('SELECT password FROM admin WHERE email != ?', [excludeEmail], (err, results) => {
+          if (err) reject(err);
+          else resolve(results);
+        });
+      })
+    ]);
 
-        try {
-            // First get all users' passwords to check for duplicates
-            const [allUsers] = await db.promise().query(
-                'SELECT password FROM users WHERE user_id != ?',
-                [userId]
-            );
+    const allPasswords = [...userPasswords, ...adminPasswords];
 
-            // Check if the new password matches any existing passwords
-            for (const user of allUsers) {
-                const passwordExists = await bcrypt.compare(newPassword, user.password);
-                if (passwordExists) {
-                    return res.json({
-                        success: false,
-                        message: 'This password is already in use. Please choose a different password.'
-                    });
-                }
-            }
-
-            // Get current user's password
-            const [currentUser] = await db.promise().query(
-                'SELECT password FROM users WHERE user_id = ? AND email = ?',
-                [userId, email]
-            );
-
-            if (currentUser.length === 0) {
-                return res.json({ 
-                    success: false, 
-                    message: 'User not found' 
-                });
-            }
-
-            // Check if new password is same as current password
-            const isSamePassword = await bcrypt.compare(newPassword, currentUser[0].password);
-            if (isSamePassword) {
-                return res.json({
-                    success: false,
-                    message: 'New password cannot be the same as your current password'
-                });
-            }
-
-            // Hash and update the new password
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-            await db.promise().query(
-                'UPDATE users SET password = ? WHERE user_id = ? AND email = ?',
-                [hashedPassword, userId, email]
-            );
-
-            res.json({ 
-                success: true, 
-                message: 'Password updated successfully' 
-            });
-        } catch (error) {
-            console.error('Error updating password:', error);
-            res.status(500).json({ 
-                success: false, 
-                message: 'Error updating password',
-                error: error.message 
-            });
+    for (const row of allPasswords) {
+      if (row.password) {
+        const isMatch = await bcrypt.compare(plainPassword, row.password);
+        if (isMatch) {
+          return true;
         }
-    });
+      }
+    }
+    return false;
+  } catch (error) {
+    console.error('Error checking password:', error);
+    throw error;
+  }
+};
 
-    return router;
+module.exports = (db) => {
+  router.post('/update-password', async (req, res) => {
+    const { email, newPassword } = req.body;
+
+    try {
+      // Check if password is already in use
+      const passwordInUse = await isPasswordInUse(db, newPassword, email);
+      if (passwordInUse) {
+        return res.status(400).json({
+          message: 'This password is already in use by another user. Please choose a different password.'
+        });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password in appropriate table
+      const updateUser = async () => {
+        return new Promise((resolve, reject) => {
+          db.query('UPDATE users SET password = ? WHERE email = ?', 
+            [hashedPassword, email], 
+            (err, result) => {
+              if (err) reject(err);
+              else resolve(result);
+          });
+        });
+      };
+
+      const updateAdmin = async () => {
+        return new Promise((resolve, reject) => {
+          db.query('UPDATE admin SET password = ? WHERE email = ?', 
+            [hashedPassword, email], 
+            (err, result) => {
+              if (err) reject(err);
+              else resolve(result);
+          });
+        });
+      };
+
+      const [userResult, adminResult] = await Promise.all([updateUser(), updateAdmin()]);
+
+      res.json({
+        success: true,
+        message: 'Password updated successfully'
+      });
+
+    } catch (error) {
+      console.error('Error updating password:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update password'
+      });
+    }
+  });
+
+  return router;
 };
